@@ -1,3 +1,12 @@
+<?php
+session_start();
+if(!isset($_SESSION['user_id'])){
+    header('refresh: 0;url=login.html');
+    exit();
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,7 +18,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Dashboard</title>
+    <title>Galeras Cars - Dashboard</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -32,13 +41,13 @@
 
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
-                </div>
-                <div class="sidebar-brand-text mx-3">SB Admin <sup>2</sup></div>
+                <div class="sidebar-brand-icon bg-white p-1 rounded-circle d-flex align-items-center justify-content-center" style="width: 100px; height: 55px; overflow: hidden;">
+    <img src="img/logo.png" alt="Galeras Cars" style="width: 100%; height: auto;">
+</div>
+                <div class="sidebar-brand-text mx-3">Galeras Cars</div>
             </a>
 
-            <!-- Divider -->
+            <!-- Divider -->    
             <hr class="sidebar-divider my-0">
 
             <!-- Nav Item - Dashboard -->
@@ -47,6 +56,11 @@
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
             </li>
+            <li class="nav-item active">
+            <a class="nav-link" href="carros.html">
+                <i class="fas fa-fw fa-car"></i><span>Vehículos</span>
+            </a>
+        </li>
 
             <!-- Divider -->
             <hr class="sidebar-divider">

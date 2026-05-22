@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Galeras Cars - Vehículos</title>
+
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+
+    <style>
+        /* ── Cards y tabla ── */
+        .car-price   { font-size: 1.15rem; font-weight: 700; color: #4e73df; }
+        .brand-badge { background: #4e73df; color: #fff; font-size: 0.7rem;
+                       padding: 3px 8px; border-radius: 10px; }
+        .badge-stock-ok   { background-color: #1cc88a; color: #fff; }
+        .badge-stock-low  { background-color: #f6c23e; color: #fff; }
+        .badge-stock-none { background-color: #e74a3b; color: #fff; }
+
+        /* ── Filtros ── */
+        .filter-bar { background:#fff; border-radius:10px; padding:1rem 1.5rem;
+                      margin-bottom:1.5rem;
+                      box-shadow:0 0.15rem 1.75rem rgba(58,59,69,.1); }
+
+        /* ── Toast ── */
+        #toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; }
+        .toast-msg { background:#1cc88a; color:#fff; padding:.75rem 1.25rem;
+                     border-radius:8px; margin-top:.5rem;
+                     box-shadow:0 4px 12px rgba(0,0,0,.15);
+                     animation:fadeInUp .3s ease; }
+        .toast-msg.error { background:#e74a3b; }
+        @keyframes fadeInUp {
+            from { opacity:0; transform:translateY(20px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* ── Loading ── */
+        #loadingOverlay { display:none; position:fixed; inset:0;
+                          background:rgba(255,255,255,.75); z-index:9998;
+                          align-items:center; justify-content:center; }
+        #loadingOverlay.active { display:flex; }
+
+        /* ── Modal header ── */
+        .modal-header-primary { background:linear-gradient(135deg,#4e73df,#224abe); color:#fff; }
+        .modal-header-success  { background:linear-gradient(135deg,#1cc88a,#17a673); color:#fff; }
+        .modal-header-primary .close,
+        .modal-header-success  .close { color:#fff; opacity:.8; }
+
+        /* ── Empty state ── */
+        .empty-state { text-align:center; padding:3rem; color:#858796; }
+        .empty-state i { font-size:4rem; margin-bottom:1rem; opacity:.3; }
+
+        /* ── Connection pill ── */
+        #dbStatus { font-size:.75rem; }
+
+        .section-divider { border-top:2px solid #e3e6f0; margin:1rem 0; }
+    </style>
+</head>
+
+<body id="page-top">
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay">
+    <div class="spinner-border" style="width:3rem;height:3rem;" role="status">
+        <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<div id="wrapper">
+
+    <!-- ══ SIDEBAR ══ -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <div class="sidebar-brand-icon bg-white p-1 rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:100px;height:55px;overflow:hidden;">
+                <img src="img/logo.png" alt="Galeras Cars" style="width:100%;height:auto;">
+            </div>
+            <div class="sidebar-brand-text mx-3">Galeras Cars</div>
+        </a>
+        <hr class="sidebar-divider my-0">
+        <li class="nav-item">
+            <a class="nav-link" href="index.html">
+                <i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span>
+            </a>
+        </li>
+        <li class="nav-item active">
+            <a class="nav-link" href="carros.html">
+                <i class="fas fa-fw fa-car"></i><span>Vehículos</span>
+            </a>
+        </li>
+        <hr class="sidebar-divider">
+        <div class="sidebar-heading">Gestión</div>
+        <li class="nav-item">
+            <a class="nav-link" href="ventas.html">
+                <i class="fas fa-fw fa-receipt"></i><span>Ventas</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="clientes.html">
+                <i class="fas fa-fw fa-users"></i><span>Clientes</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="marcas.html">
+                <i class="fas fa-fw fa-tags"></i><span>Marcas</span>
+            </a>
+        </li>
+        <hr class="sidebar-divider d-none d-md-block">
+        <div class="text-center d-none d-md-inline">
+            <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
+    </ul>
+    <!-- ══ END SIDEBAR ══ -->
+
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+
+            <!-- ══ TOPBAR ══ -->
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fa fa-bars"></i>
+                </button>
+
+                <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control bg-light border-0 small"
+                               placeholder="Buscar vehículo…" aria-label="Search">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button"><i class="fas fa-search fa-sm"></i></button>
+                        </div>
+                    </div>
+                </form>
+
+                <ul class="navbar-nav ml-auto">
+                    <!-- DB Status pill -->
+                    <li class="nav-item d-none d-lg-flex align-items-center mr-3">
+                        <span id="dbStatus" class="badge badge-secondary">DB: —</span>
+                    </li>
+                    <li class="nav-item dropdown no-arrow">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown"
+                           role="button" data-toggle="dropdown">
+                            <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin</span>
+                            <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>Profile
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>Logout
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <!-- ══ END TOPBAR ══ -->
+
+            <!-- ══ PAGE CONTENT ══ -->
+            <div class="container-fluid">
+
+                <!-- Heading -->
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-car mr-2 text-primary"></i>Gestión de Vehículos
+                    </h1>
+                    <button class="btn btn-primary btn-sm shadow-sm"
+                            data-toggle="modal" data-target="#modalVehiculo"
+                            onclick="prepararNuevoVehiculo()">
+                        <i class="fas fa-plus fa-sm text-white-50 mr-1"></i> Agregar Vehículo
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Vehículos</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="statTotal">0</div>
+                                    </div>
+                                    <div class="col-auto"><i class="fas fa-car fa-2x text-gray-300"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">En Stock</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="statStock">0</div>
+                                    </div>
+                                    <div class="col-auto"><i class="fas fa-check-circle fa-2x text-gray-300"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Stock Bajo</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="statLow">0</div>
+                                    </div>
+                                    <div class="col-auto"><i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-danger shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Sin Stock</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="statNone">0</div>
+                                    </div>
+                                    <div class="col-auto"><i class="fas fa-times-circle fa-2x text-gray-300"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-bar d-flex flex-wrap align-items-end">
+                    <div class="mr-3 mb-2">
+                        <label class="small font-weight-bold text-gray-600 mb-1 d-block">Marca</label>
+                        <select id="filterBrand" class="form-control form-control-sm">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div class="mr-3 mb-2">
+                        <label class="small font-weight-bold text-gray-600 mb-1 d-block">Año</label>
+                        <select id="filterYear" class="form-control form-control-sm">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="mr-3 mb-2">
+                        <label class="small font-weight-bold text-gray-600 mb-1 d-block">Color</label>
+                        <select id="filterColor" class="form-control form-control-sm">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="mr-3 mb-2">
+                        <label class="small font-weight-bold text-gray-600 mb-1 d-block">Stock</label>
+                        <select id="filterStock" class="form-control form-control-sm">
+                            <option value="">Todos</option>
+                            <option value="ok">Disponible (&gt;3)</option>
+                            <option value="low">Bajo (1–3)</option>
+                            <option value="none">Sin stock</option>
+                        </select>
+                    </div>
+                    <div class="ml-auto mb-2">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="limpiarFiltros()">
+                            <i class="fas fa-times mr-1"></i>Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-list mr-1"></i>Listado de Vehículos
+                        </h6>
+                        <span class="badge badge-primary" id="countBadge">0 vehículos</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover mb-0"
+                                   id="vehiclesTable" width="100%" cellspacing="0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th class="text-center" style="width:60px">ID</th>
+                                        <th>Marca / País</th>
+                                        <th>Modelo</th>
+                                        <th class="text-center">Año</th>
+                                        <th>Color</th>
+                                        <th>Precio</th>
+                                        <th class="text-center">Stock</th>
+                                        <th class="text-center" style="width:130px">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vehiclesBody">
+                                    <tr>
+                                        <td colspan="8" class="empty-state">
+                                            <i class="fas fa-car d-block"></i>
+                                            Cargando vehículos…
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /.container-fluid -->
+        </div><!-- /#content -->
+
+        <footer class="sticky-footer bg-white">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; Galeras Cars 2026</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div><!-- /#wrapper -->
+
+<!-- ══════════════════════════════════════════
+     MODAL: Agregar / Editar Vehículo
+══════════════════════════════════════════ -->
+<div class="modal fade" id="modalVehiculo" tabindex="-1" role="dialog"
+     aria-labelledby="modalVehiculoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-header-primary">
+                <h5 class="modal-title" id="modalVehiculoLabel">
+                    <i class="fas fa-car mr-2"></i>Vehículo
+                </h5>
+                <button class="close" type="button" data-dismiss="modal"><span>×</span></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="vehiculoId">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold small text-gray-700">
+                                Marca <span class="text-danger">*</span>
+                            </label>
+                            <select id="vBrandId" class="form-control">
+                                <option value="">Seleccionar marca…</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold small text-gray-700">
+                                Modelo <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="vModel" class="form-control"
+                                   placeholder="Ej: Corolla, Civic…">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="font-weight-bold small text-gray-700">
+                                Año <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="vYear" class="form-control"
+                                   placeholder="2024" min="1900" max="2030">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="font-weight-bold small text-gray-700">Color</label>
+                            <input type="text" id="vColor" class="form-control"
+                                   placeholder="Ej: Rojo, Negro…">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="font-weight-bold small text-gray-700">
+                                Stock <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="vStock" class="form-control"
+                                   placeholder="0" min="0">
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="font-weight-bold small text-gray-700">
+                                Precio (COP) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" id="vPrice" class="form-control"
+                                       placeholder="0" min="0" step="1000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardar" onclick="guardarVehiculo()">
+                    <i class="fas fa-save mr-1"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: Registrar Venta
+══════════════════════════════════════════ -->
+<div class="modal fade" id="modalVenta" tabindex="-1" role="dialog"
+     aria-labelledby="modalVentaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-header-success">
+                <h5 class="modal-title" id="modalVentaLabel">
+                    <i class="fas fa-shopping-cart mr-2"></i>Registrar Venta
+                </h5>
+                <button class="close" type="button" data-dismiss="modal"><span>×</span></button>
+            </div>
+            <div class="modal-body">
+                <!-- Resumen vehículo -->
+                <div class="alert alert-info mb-3" id="ventaResumen"></div>
+
+                <input type="hidden" id="ventaVehicleId">
+
+                <!-- Vendedor y Cliente -->
+                <h6 class="font-weight-bold text-gray-700 mb-3">
+                    <i class="fas fa-user mr-1"></i>Participantes
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="small font-weight-bold text-gray-700">
+                                Vendedor (Usuario) <span class="text-danger">*</span>
+                            </label>
+                            <select id="ventaUserId" class="form-control">
+                                <option value="">Seleccionar vendedor…</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="small font-weight-bold text-gray-700">
+                                Cliente <span class="text-danger">*</span>
+                            </label>
+                            <select id="ventaCustomerId" class="form-control">
+                                <option value="">Seleccionar cliente…</option>
+                            </select>
+                            <small>
+                                <a href="#" class="text-primary" onclick="toggleNuevoCliente(event)">
+                                    + Nuevo cliente
+                                </a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nuevo cliente inline -->
+                <div id="nuevoClienteForm" style="display:none;"
+                     class="border rounded p-3 mb-3 bg-light">
+                    <h6 class="font-weight-bold text-gray-700 mb-2">
+                        <i class="fas fa-user-plus mr-1"></i>Nuevo Cliente
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <input type="text" id="ncNombre" class="form-control form-control-sm"
+                                       placeholder="Nombre completo *">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <input type="email" id="ncEmail" class="form-control form-control-sm"
+                                       placeholder="Email">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <input type="text" id="ncPhone" class="form-control form-control-sm"
+                                       placeholder="Teléfono">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <input type="text" id="ncAddress" class="form-control form-control-sm"
+                                       placeholder="Dirección">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-success btn-sm" onclick="crearCliente()">
+                        <i class="fas fa-check mr-1"></i>Crear cliente
+                    </button>
+                    <button class="btn btn-secondary btn-sm ml-1"
+                            onclick="toggleNuevoCliente(event)">Cancelar</button>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <!-- Pago -->
+                <h6 class="font-weight-bold text-gray-700 mb-3">
+                    <i class="fas fa-credit-card mr-1"></i>Pago
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="small font-weight-bold text-gray-700">
+                                Método de Pago <span class="text-danger">*</span>
+                            </label>
+                            <select id="ventaMetodo" class="form-control">
+                                <option value="">Seleccionar…</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+                                <option value="Tarjeta Débito">Tarjeta Débito</option>
+                                <option value="Transferencia">Transferencia</option>
+                                <option value="Financiamiento">Financiamiento</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="small font-weight-bold text-gray-700">Monto Total</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" id="ventaMonto" class="form-control"
+                                       step="1000" min="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="small font-weight-bold text-gray-700">Fecha de Venta</label>
+                            <input type="date" id="ventaFecha" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="small font-weight-bold text-gray-700">Estado</label>
+                            <select id="ventaStatus" class="form-control">
+                                <option value="completed">Completado</option>
+                                <option value="pending">Pendiente</option>
+                                <option value="cancelled">Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                <button class="btn btn-success" onclick="registrarVenta()">
+                    <i class="fas fa-check mr-1"></i>Confirmar Venta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logout Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">¿Cerrar sesión?</h5>
+                <button class="close" type="button" data-dismiss="modal"><span>×</span></button>
+            </div>
+            <div class="modal-body">Selecciona "Logout" para terminar tu sesión actual.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                <a class="btn btn-primary" href="login.html">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+
+<!-- Scripts -->
+<script src="vendor/jquery/jquery.min.js"></script>
+<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+<script src="js/sb-admin-2.min.js"></script>
+
+<script>
+'use strict';
+
+// =============================================
+// CONFIG  — Ruta a la API PHP
+// =============================================
+const API = 'api/api.php';   // ajusta si tu servidor tiene otra ruta
+
+// =============================================
+// ESTADO
+// =============================================
+let todosVehiculos = [];
+let todasMarcas    = [];
+
+// =============================================
+// UTILIDADES
+// =============================================
+function showLoading(v) {
+    document.getElementById('loadingOverlay').classList.toggle('active', v);
+}
+
+function toast(msg, isError = false) {
+    const c = document.getElementById('toast-container');
+    const d = document.createElement('div');
+    d.className = 'toast-msg' + (isError ? ' error' : '');
+    d.textContent = msg;
+    c.appendChild(d);
+    setTimeout(() => d.remove(), 3500);
+}
+
+function fmtPrice(n) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency', currency: 'COP', minimumFractionDigits: 0
+    }).format(n ?? 0);
+}
+
+function stockBadge(stock) {
+    const s = parseInt(stock) || 0;
+    if (s <= 0)  return `<span class="badge badge-stock-none">Sin stock</span>`;
+    if (s <= 3)  return `<span class="badge badge-stock-low">${s} bajo</span>`;
+    return `<span class="badge badge-stock-ok">${s} disp.</span>`;
+}
+
+// =============================================
+// API HELPERS
+// =============================================
+async function apiFetch(resource, options = {}) {
+    const url = `${API}?resource=${resource}` + (options.id ? `&id=${options.id}` : '');
+    const cfg = {
+        method:  options.method  || 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    };
+    if (options.body) cfg.body = JSON.stringify(options.body);
+
+    const res  = await fetch(url, cfg);
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+    return json;
+}
+
+// =============================================
+// INIT
+// =============================================
+async function init() {
+    showLoading(true);
+    try {
+        await Promise.all([
+            verificarConexion(),
+            cargarMarcas(),
+            cargarUsuarios(),
+            cargarClientes(),
+        ]);
+        await cargarVehiculos();
+    } catch(e) {
+        toast('Error iniciando la página: ' + e.message, true);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// =============================================
+// ESTADO DE CONEXIÓN
+// =============================================
+async function verificarConexion() {
+    try {
+        const json = await apiFetch('status');
+        const pill = document.getElementById('dbStatus');
+        if (json.active === 'supabase') {
+            pill.className = 'badge badge-success';
+            pill.textContent = 'DB: Supabase ✓';
+        } else if (json.active === 'local') {
+            pill.className = 'badge badge-warning';
+            pill.textContent = 'DB: Local ✓';
+        } else {
+            pill.className = 'badge badge-danger';
+            pill.textContent = 'DB: Sin conexión';
+        }
+    } catch(e) {
+        document.getElementById('dbStatus').textContent = 'DB: Error';
+    }
+}
+
+// =============================================
+// CARGA DE DATOS
+// =============================================
+async function cargarMarcas() {
+    const json = await apiFetch('brands');
+    todasMarcas = json.data || [];
+    const opts  = todasMarcas.map(b =>
+        `<option value="${b.id}">${b.name}${b.country ? ' (' + b.country + ')' : ''}</option>`
+    ).join('');
+
+    document.getElementById('vBrandId').innerHTML =
+        '<option value="">Seleccionar marca…</option>' + opts;
+    document.getElementById('filterBrand').innerHTML =
+        '<option value="">Todas</option>' + opts;
+}
+
+async function cargarVehiculos() {
+    const json = await apiFetch('vehicles');
+    todosVehiculos = json.data || [];
+    renderVehiculos(todosVehiculos);
+    actualizarStats(todosVehiculos);
+    poblarFiltros(todosVehiculos);
+}
+
+async function cargarUsuarios() {
+    const json = await apiFetch('users');
+    const opts = (json.data || []).map(u =>
+        `<option value="${u.id}">${u.first_name} ${u.last_name} — ${u.email}` +
+        (u.role ? ` [${u.role}]` : '') + `</option>`
+    ).join('');
+    document.getElementById('ventaUserId').innerHTML =
+        '<option value="">Seleccionar vendedor…</option>' + opts;
+}
+
+async function cargarClientes() {
+    const json = await apiFetch('customers');
+    const opts = (json.data || []).map(c =>
+        `<option value="${c.id}">${c.name}${c.email ? ' — ' + c.email : ''}` +
+        (c.phone ? ` · ${c.phone}` : '') + `</option>`
+    ).join('');
+    document.getElementById('ventaCustomerId').innerHTML =
+        '<option value="">Seleccionar cliente…</option>' + opts;
+}
+
+// =============================================
+// RENDER TABLA
+// =============================================
+function renderVehiculos(vehicles) {
+    const tbody = document.getElementById('vehiclesBody');
+    document.getElementById('countBadge').textContent = `${vehicles.length} vehículos`;
+
+    if (!vehicles.length) {
+        tbody.innerHTML = `
+            <tr><td colspan="8">
+                <div class="empty-state">
+                    <i class="fas fa-car d-block"></i>
+                    <p>No hay vehículos registrados</p>
+                    <button class="btn btn-primary btn-sm"
+                            data-toggle="modal" data-target="#modalVehiculo"
+                            onclick="prepararNuevoVehiculo()">
+                        <i class="fas fa-plus mr-1"></i>Agregar el primero
+                    </button>
+                </div>
+            </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = vehicles.map(v => `
+        <tr>
+            <td class="text-center text-muted">#${v.id}</td>
+            <td>
+                <span class="brand-badge">${v.brand_name || '—'}</span>
+                ${v.brand_country
+                    ? `<small class="text-muted ml-1">${v.brand_country}</small>`
+                    : ''}
+            </td>
+            <td><strong>${v.model}</strong></td>
+            <td class="text-center">${v.year || '—'}</td>
+            <td>${v.color
+                    ? `<span class="badge badge-secondary">${v.color}</span>`
+                    : '<span class="text-muted">—</span>'}</td>
+            <td class="car-price">${v.price ? fmtPrice(v.price) : '—'}</td>
+            <td class="text-center">${stockBadge(v.stock)}</td>
+            <td class="text-center">
+                <button class="btn btn-success btn-sm mr-1"
+                        onclick="abrirVenta(${v.id})"
+                        ${parseInt(v.stock) <= 0 ? 'disabled title="Sin stock"' : ''}
+                        title="Registrar venta">
+                    <i class="fas fa-shopping-cart"></i>
+                </button>
+                <button class="btn btn-info btn-sm mr-1"
+                        onclick="editarVehiculo(${v.id})"
+                        title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-danger btn-sm"
+                        onclick="eliminarVehiculo(${v.id})"
+                        title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>`
+    ).join('');
+}
+
+// =============================================
+// STATS
+// =============================================
+function actualizarStats(vehicles) {
+    document.getElementById('statTotal').textContent = vehicles.length;
+    document.getElementById('statStock').textContent =
+        vehicles.filter(v => parseInt(v.stock) > 3).length;
+    document.getElementById('statLow').textContent =
+        vehicles.filter(v => parseInt(v.stock) > 0 && parseInt(v.stock) <= 3).length;
+    document.getElementById('statNone').textContent =
+        vehicles.filter(v => parseInt(v.stock) <= 0).length;
+}
+
+// =============================================
+// FILTROS
+// =============================================
+function poblarFiltros(vehicles) {
+    const years  = [...new Set(vehicles.map(v => v.year).filter(Boolean))].sort((a,b)=>b-a);
+    const colors = [...new Set(vehicles.map(v => v.color).filter(Boolean))].sort();
+
+    document.getElementById('filterYear').innerHTML =
+        '<option value="">Todos</option>' +
+        years.map(y => `<option value="${y}">${y}</option>`).join('');
+
+    document.getElementById('filterColor').innerHTML =
+        '<option value="">Todos</option>' +
+        colors.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function aplicarFiltros() {
+    const brand  = document.getElementById('filterBrand').value;
+    const year   = document.getElementById('filterYear').value;
+    const color  = document.getElementById('filterColor').value;
+    const stock  = document.getElementById('filterStock').value;
+    const search = document.getElementById('searchInput').value.toLowerCase();
+
+    const filtered = todosVehiculos.filter(v => {
+        if (brand && String(v.brand_id) !== brand)        return false;
+        if (year  && String(v.year)     !== year)          return false;
+        if (color && v.color            !== color)         return false;
+        const s = parseInt(v.stock) || 0;
+        if (stock === 'ok'   && s <= 3)                    return false;
+        if (stock === 'low'  && !(s > 0 && s <= 3))       return false;
+        if (stock === 'none' && s > 0)                     return false;
+        if (search && !`${v.model} ${v.brand_name || ''} ${v.color || ''} ${v.year || ''}`
+                           .toLowerCase().includes(search)) return false;
+        return true;
+    });
+
+    renderVehiculos(filtered);
+    actualizarStats(filtered);
+}
+
+function limpiarFiltros() {
+    ['filterBrand','filterYear','filterColor','filterStock'].forEach(id =>
+        document.getElementById(id).value = '');
+    document.getElementById('searchInput').value = '';
+    renderVehiculos(todosVehiculos);
+    actualizarStats(todosVehiculos);
+}
+
+['filterBrand','filterYear','filterColor','filterStock'].forEach(id =>
+    document.getElementById(id).addEventListener('change', aplicarFiltros));
+document.getElementById('searchInput').addEventListener('input', aplicarFiltros);
+
+// =============================================
+// CRUD VEHÍCULOS
+// =============================================
+function prepararNuevoVehiculo() {
+    document.getElementById('modalVehiculoLabel').innerHTML =
+        '<i class="fas fa-plus-circle mr-2"></i>Nuevo Vehículo';
+    document.getElementById('vehiculoId').value = '';
+    ['vBrandId','vModel','vYear','vColor','vStock','vPrice'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+}
+
+function editarVehiculo(id) {
+    const v = todosVehiculos.find(x => parseInt(x.id) === id);
+    if (!v) return;
+    document.getElementById('modalVehiculoLabel').innerHTML =
+        '<i class="fas fa-edit mr-2"></i>Editar Vehículo';
+    document.getElementById('vehiculoId').value = v.id;
+    document.getElementById('vBrandId').value   = v.brand_id;
+    document.getElementById('vModel').value     = v.model;
+    document.getElementById('vYear').value      = v.year  || '';
+    document.getElementById('vColor').value     = v.color || '';
+    document.getElementById('vStock').value     = v.stock;
+    document.getElementById('vPrice').value     = v.price;
+    $('#modalVehiculo').modal('show');
+}
+
+async function guardarVehiculo() {
+    const id      = document.getElementById('vehiculoId').value;
+    const brandId = document.getElementById('vBrandId').value;
+    const model   = document.getElementById('vModel').value.trim();
+    const year    = document.getElementById('vYear').value;
+    const color   = document.getElementById('vColor').value.trim();
+    const stock   = document.getElementById('vStock').value;
+    const price   = document.getElementById('vPrice').value;
+
+    if (!brandId || !model || stock === '' || !price) {
+        toast('Completa los campos obligatorios (*)', true); return;
+    }
+
+    const body = {
+        brand_id: parseInt(brandId),
+        model,
+        year:  year  ? parseInt(year)   : null,
+        color: color || null,
+        stock: parseInt(stock),
+        price: parseFloat(price),
+    };
+
+    showLoading(true);
+    try {
+        if (id) {
+            await apiFetch('vehicles', { method: 'PUT', id, body });
+            toast('Vehículo actualizado ✓');
+        } else {
+            await apiFetch('vehicles', { method: 'POST', body });
+            toast('Vehículo agregado ✓');
+        }
+        $('#modalVehiculo').modal('hide');
+        await cargarVehiculos();
+    } catch(e) {
+        toast('Error: ' + e.message, true);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function eliminarVehiculo(id) {
+    if (!confirm('¿Eliminar este vehículo? Esta acción no se puede deshacer.')) return;
+    showLoading(true);
+    try {
+        await apiFetch('vehicles', { method: 'DELETE', id });
+        toast('Vehículo eliminado');
+        await cargarVehiculos();
+    } catch(e) {
+        toast('Error al eliminar: ' + e.message, true);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// =============================================
+// VENTA
+// =============================================
+function abrirVenta(vehicleId) {
+    const v = todosVehiculos.find(x => parseInt(x.id) === vehicleId);
+    if (!v) return;
+
+    document.getElementById('ventaVehicleId').value = v.id;
+    document.getElementById('ventaMonto').value     = v.price || '';
+    document.getElementById('ventaFecha').value     = new Date().toISOString().split('T')[0];
+    document.getElementById('ventaStatus').value    = 'completed';
+    document.getElementById('ventaUserId').value    = '';
+    document.getElementById('ventaCustomerId').value = '';
+    document.getElementById('ventaMetodo').value    = '';
+
+    // Ocultar form nuevo cliente
+    document.getElementById('nuevoClienteForm').style.display = 'none';
+    ['ncNombre','ncEmail','ncPhone','ncAddress'].forEach(id =>
+        document.getElementById(id).value = '');
+
+    document.getElementById('ventaResumen').innerHTML = `
+        <strong><i class="fas fa-car mr-1"></i>
+        ${v.brand_name || ''} ${v.model} ${v.year || ''}</strong>
+        ${v.color ? ` &middot; <span class="badge badge-secondary">${v.color}</span>` : ''}
+        <span class="float-right font-weight-bold text-success">${fmtPrice(v.price)}</span>
+        <br><small class="text-muted">Stock disponible: ${v.stock}</small>`;
+
+    $('#modalVenta').modal('show');
+}
+
+async function registrarVenta() {
+    const vehicleId  = document.getElementById('ventaVehicleId').value;
+    const userId     = document.getElementById('ventaUserId').value;
+    const customerId = document.getElementById('ventaCustomerId').value;
+    const metodo     = document.getElementById('ventaMetodo').value;
+    const monto      = document.getElementById('ventaMonto').value;
+    const fecha      = document.getElementById('ventaFecha').value;
+    const status     = document.getElementById('ventaStatus').value;
+
+    if (!userId || !customerId || !metodo || !monto) {
+        toast('Completa todos los campos requeridos', true); return;
+    }
+
+    showLoading(true);
+    try {
+        await apiFetch('sales', {
+            method: 'POST',
+            body: {
+                user_id:        parseInt(userId),
+                vehicle_id:     parseInt(vehicleId),
+                customer_id:    parseInt(customerId),
+                sale_date:      fecha,
+                total_amount:   parseFloat(monto),
+                payment_amount: parseFloat(monto),
+                payment_method: metodo,
+                status
+            }
+        });
+        toast('¡Venta registrada exitosamente! 🎉');
+        $('#modalVenta').modal('hide');
+        await cargarVehiculos();
+    } catch(e) {
+        toast('Error al registrar venta: ' + e.message, true);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// =============================================
+// NUEVO CLIENTE INLINE
+// =============================================
+function toggleNuevoCliente(e) {
+    if (e) e.preventDefault();
+    const form = document.getElementById('nuevoClienteForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function crearCliente() {
+    const nombre = document.getElementById('ncNombre').value.trim();
+    if (!nombre) { toast('El nombre es obligatorio', true); return; }
+
+    showLoading(true);
+    try {
+        const json = await apiFetch('customers', {
+            method: 'POST',
+            body: {
+                name:    nombre,
+                email:   document.getElementById('ncEmail').value.trim()   || null,
+                phone:   document.getElementById('ncPhone').value.trim()   || null,
+                address: document.getElementById('ncAddress').value.trim() || null,
+            }
+        });
+        toast('Cliente creado ✓');
+        document.getElementById('nuevoClienteForm').style.display = 'none';
+        ['ncNombre','ncEmail','ncPhone','ncAddress'].forEach(id =>
+            document.getElementById(id).value = '');
+        await cargarClientes();
+        if (json.data && json.data.id) {
+            document.getElementById('ventaCustomerId').value = json.data.id;
+        }
+    } catch(e) {
+        toast('Error creando cliente: ' + e.message, true);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// =============================================
+// INIT
+// =============================================
+init();
+</script>
+
+</body>
+</html>
