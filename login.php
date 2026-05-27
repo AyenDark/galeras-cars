@@ -1,3 +1,11 @@
+<?php
+session_start();
+if(isset($_SESSION['user_id'])){
+    header('Location: index.php');
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -43,7 +51,7 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                     </div>
-                                    <form class="user" action="signin.php" method="post">
+                                  <form action="signin.php" method="post">
                                         <div class="form-group">
                                             <input type="email" class="form-control form-control-user"
                                                 id="exampleInputEmail" aria-describedby="emailHelp"
@@ -51,7 +59,7 @@
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user"
-                                                id="exampleInputPassword" placeholder="Password" name="pswd" required>
+                                                id="exampleInputPassword" placeholder="Password" name="pasword" required>
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small">

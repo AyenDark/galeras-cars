@@ -1,13 +1,12 @@
 <?php
 include('config/database.php');
-// get data
 
-$f_name =      $_POST['fname'];
-$l_name =      $_POST['lname'];
-$e_mail =      $_POST['email'];
-$p_sword =     $_POST['pasword'];
+$f_name  = $_POST['fname'];
+$l_name  = $_POST['lname'];
+$e_mail  = trim($_POST['email']);
+$p_sword = trim($_POST['pasword']);
 $enc_pass = password_hash($p_sword, PASSWORD_BCRYPT);
-$m_phone =     $_POST['mphone'];
+$m_phone = $_POST['mphone'];
 
 //email 
 $check_email = "SELECT email FROM users_model WHERE email = '$e_mail'";
@@ -43,7 +42,7 @@ if ($res_local) {
     if ($res_supa) {
         //echo "¡Listo! Guardado en ambos lados.";
         echo "<script>alert('Registro exitoso.'); </script>";
-        header('refresh:0;url=login.html');
+        header('refresh:0;url=login.php');
     } else {    
         echo "Error: Se guardó en local pero no en la nube.";
     }
